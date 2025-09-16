@@ -2,7 +2,6 @@ package com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestion;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionCreateRequestDTO;
