@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestion;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionCreateRequestDTO;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionDTO;
+import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuizDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -60,8 +61,16 @@ public class MCQuestionController {
     public ResponseEntity<MCQuestionDTO> generateQuestionForFile(
             @RequestParam("file") MultipartFile fileToUpload) throws IOException {
 
-        logger.info("Controller hit with file: " + fileToUpload.getOriginalFilename());
-
         return ResponseEntity.ok(mcQuestionService.generateQuestion(fileToUpload));
+    }
+
+    @PostMapping(path = "/createQuiz",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<MCQuizDTO> generateMcQuizForFile(
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        return ResponseEntity.ok(mcQuestionService.generateMcQuiz(file));
     }
 }

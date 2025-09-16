@@ -5,6 +5,7 @@ import java.util.List;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestion;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionCreateRequestDTO;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionDTO;
+import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuizDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,5 +37,9 @@ public class MCQuestionService {
     public MCQuestion saveQuestion(MCQuestionCreateRequestDTO mcQuestionCreateRequest) {
         MCQuestion entity = mcQuestionMapper.toEntity(mcQuestionCreateRequest);
         return mcQuestionRepository.save(entity);
+    }
+
+    public MCQuizDTO generateMcQuiz(MultipartFile file) throws IOException {
+        return mcQuestionPromptCreator.createMCQuiz(file, 5);
     }
 }
