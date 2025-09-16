@@ -25,8 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/mcQuestion")
 public class MCQuestionController {
 
-    private final Logger logger = Logger.getLogger(MCQuestionController.class.getName());
-
     private final MCQuestionService mcQuestionService;
     private final MCQuestionMapper mapper;
 
