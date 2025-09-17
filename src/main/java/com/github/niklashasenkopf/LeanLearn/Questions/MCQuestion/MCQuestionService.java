@@ -2,6 +2,7 @@ package com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion;
 import java.io.IOException;
 import java.util.List;
 
+import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.Difficulty;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestion;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionCreateRequestDTO;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionDTO;
@@ -39,7 +40,13 @@ public class MCQuestionService {
         return mcQuestionRepository.save(entity);
     }
 
-    public MCQuizDTO generateMcQuiz(MultipartFile file) throws IOException {
-        return mcQuestionPromptCreator.createMCQuiz(file, 5);
+    public MCQuizDTO generateMcQuiz(
+            MultipartFile file,
+            Difficulty difficulty
+    )
+            throws IOException {
+
+        return mcQuestionPromptCreator.createMCQuiz(file, 5, difficulty);
+
     }
 }

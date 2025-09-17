@@ -3,6 +3,7 @@ package com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion;
 import java.io.IOException;
 import java.util.List;
 
+import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.Difficulty;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuestionDTO;
 import com.github.niklashasenkopf.LeanLearn.Questions.MCQuestion.models.MCQuizDTO;
 import org.springframework.ai.chat.client.ChatClient;
@@ -25,8 +26,8 @@ public class MCQuestionPromptCreator {
         this.chatClient = chatClient;
     }
 
-    private String getSystemInstructions() {
-        return """
+    private String getSystemInstructions(Difficulty difficulty) {
+        return String.format("""
                 You are an expert senior software engineer, skilled in producing detailed, authentic, and correct
                 assessments for your junior developers.
                 For today's course you assembled some notes which summarize the main points of the course you held today.
@@ -37,7 +38,15 @@ public class MCQuestionPromptCreator {
                 The question should ideally consist of a small but real-world realistic scenario
                 which challenges the students understanding. You are allowed to use your own knowledge as well when
                 creating the questions. Just make sure the provided notes form the base.
-                """;
+                
+                The difficulty level of the generated questions must be: %s
+                
+                - EASY: Focus on basic recall and direct application of key facts or definitions.
+                - MEDIUM: Require understanding of concepts and the ability to apply them in simple scenarios.
+                - HARD: Involve multi-step reasoning, comparisons, or integration of multiple concepts.
+                - EXTREME: Use complex, real-world scenarios that require deep problem solving, critical thinking,
+                  and careful distinction between very similar answers.
+                """,difficulty.name());
     }
 
     private String getUserInstructions(int numAnswers, int numQuestions, String fileContent) {
@@ -64,14 +73,16 @@ public class MCQuestionPromptCreator {
         return chatClient
                 .prompt()
                 .user(getUserInstructions(numAnswers, 1, fileContent))
-                .system(getSystemInstructions())
+                .system(getSystemInstructions(Difficulty.MEDIUM))
                 .call()
                 .entity(MCQuestionDTO.class);
     }
 
     public MCQuizDTO createMCQuiz(
             MultipartFile file,
-            int numQuestions) throws IOException {
+            int numQuestions,
+            Difficulty difficulty
+    ) throws IOException {
         String fileContent = new String(file.getBytes());
 
         String jsonSchema = """
@@ -102,14 +113,14 @@ public class MCQuestionPromptCreator {
                 """;
 
         List<Message> instructions = List.of(
-                new SystemMessage(getSystemInstructions()),
+                new SystemMessage(getSystemInstructions(difficulty)),
                 new UserMessage(getUserInstructions(4, numQuestions, fileContent))
         );
 
         Prompt prompt = new Prompt(
                 instructions,
                 OpenAiChatOptions.builder()
-                        .model(OpenAiApi.ChatModel.GPT_4_O_MINI)
+                        .model(OpenAiApi.ChatModel.GPT_4_O)
                         .responseFormat(new ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, jsonSchema))
                         .build()
         );
