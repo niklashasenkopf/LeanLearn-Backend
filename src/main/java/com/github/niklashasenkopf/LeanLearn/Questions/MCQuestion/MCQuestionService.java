@@ -42,11 +42,12 @@ public class MCQuestionService {
 
     public MCQuizDTO generateMcQuiz(
             MultipartFile file,
-            Difficulty difficulty
+            Difficulty difficulty,
+            int numQuestions
     )
             throws IOException {
 
-        return mcQuestionPromptCreator.createMCQuiz(file, 5, difficulty);
+        return mcQuestionPromptCreator.createMCQuiz(file, numQuestions, difficulty);
 
     }
 }

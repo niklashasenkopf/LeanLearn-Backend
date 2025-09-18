@@ -68,9 +68,10 @@ public class MCQuestionController {
     )
     public ResponseEntity<MCQuizDTO> generateMcQuizForFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("difficulty")Difficulty difficulty
+            @RequestParam("difficulty")Difficulty difficulty,
+            @RequestParam("numQuestions") int numQuestions
     ) throws IOException {
 
-        return ResponseEntity.ok(mcQuestionService.generateMcQuiz(file, difficulty));
+        return ResponseEntity.ok(mcQuestionService.generateMcQuiz(file, difficulty, numQuestions));
     }
 }
