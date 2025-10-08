@@ -30,13 +30,13 @@ public class CodingQuestionPromptCreator {
                 You are an expert senior software engineer, skilled in producing detailed, authentic, and correct
                 assessments for your junior developers.
                 For today's course you assembled some notes which summarize the main points of the course you held today.
-                Generate a coding exercise appropriate for a student who wants to learn the courses contents.
+                Generate a coding codingExercise appropriate for a student who wants to learn the courses contents.
                 It is important for you to actually test the student's understanding of the material instead of blindly
                 reciting facts.
-                Thus you want to create an exercise which requires an actual understanding of the lectures contents.
+                Thus you want to create an codingExercise which requires an actual understanding of the lectures contents.
                 The question should ideally consist of a small but real-world realistic scenario
                 which challenges the students understanding. If applicable you can supply existing code which the student
-                will extend on in the exercise.
+                will extend on in the codingExercise.
                 You are allowed to use your own knowledge as well when
                 creating the questions. Just make sure the provided notes form the base.
                 
@@ -52,7 +52,7 @@ public class CodingQuestionPromptCreator {
 
     private String getUserInstructions(String fileContent) {
         return String.format("""
-        For the following file content you need to create a coding exercise.
+        For the following file content you need to create a coding codingExercise.
         These are the notes of today's lecture: %s
         """, fileContent);
     }
