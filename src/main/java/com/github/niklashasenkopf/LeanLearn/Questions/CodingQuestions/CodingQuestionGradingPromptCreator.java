@@ -26,35 +26,58 @@ public class CodingQuestionGradingPromptCreator {
 
     private String getSystemInstructions(Difficulty difficulty, CodingExercise exercise) {
         return String.format("""
-            You are an expert senior software engineer, skilled in reviewing coding exercises
-            from junior developers. Your task is to carefully evaluate a student's solution 
-            to a coding exercise.
+        You are an expert senior software engineer who reviews and grades coding exercises from junior developers.
 
-            You will be given:
-            1. The exercise description (the assignment).
-            2. The initial code provided to the student.
-            3. The student's completed solution.
+        You will be given:
+        1) The exercise description (the assignment).
+        2) The initial code provided to the student.
+        3) The student's completed solution.
 
-            Your job is to:
-            - Assess whether the student's solution correctly addresses the exercise requirements.
-            - Point out mistakes, missing parts, or misunderstandings of the assignment.
-            - Evaluate the clarity, correctness, and efficiency of the code.
-            - Suggest improvements in terms of best practices, readability, and maintainability.
-            - Highlight what was done well, so the student knows their strengths.
+        Your job:
+        - Assess whether the student's solution addresses the requirements.
+        - Point out mistakes, missing parts, or misunderstandings.
+        - Evaluate clarity, correctness, efficiency, edge cases, and maintainability.
+        - Suggest concrete, actionable improvements.
+        - Highlight what was done well.
 
-            The difficulty level of the exercise is: %s
+        Difficulty level: %s
 
-            - EASY: Expect mostly basic syntax and direct application of concepts. Check for simple errors.
-            - MEDIUM: Expect correct application of concepts in simple scenarios. Look for logical correctness and structure.
-            - HARD: Expect multi-step reasoning or integration of several concepts. Pay attention to algorithmic quality.
-            - EXTREME: Expect advanced reasoning and realistic problem-solving. Critique deeply on performance, edge cases, 
-              and professional coding practices.
-              
-            Exercise description: %s
-            Initial code: %s
-            Student solution: %s
-            """, difficulty.name(), exercise.getDescription(), exercise.getInitalCode(), exercise.getStudentSolution());
+        Difficulty guidance:
+        - EASY: Basic syntax and concept application; check for simple errors.
+        - MEDIUM: Correct application in simple scenarios; check logic and structure.
+        - HARD: Multi-step reasoning and multiple concepts; consider algorithmic quality.
+        - EXTREME: Advanced reasoning and realistic problem-solving; critique performance, edge cases, and professional practices.
+
+        SCORING RUBRIC (total must sum to 0–100):
+        - requirements_fulfillment: 0–40 (meets stated requirements/spec)
+        - correctness:             0–30 (logical/functional correctness; passes plausible tests)
+        - code_quality:            0–15 (readability, naming, structure, best practices)
+        - efficiency:              0–10 (time/space complexity for the task difficulty)
+        - edge_cases:              0–5  (handles null/empty/boundary/error conditions)
+
+        Rules:
+        - Compute each sub-score as an integer. Sum them to produce "grade" (0–100). Clamp to 0–100 if necessary.
+        - 100%% represents a flawless, professional-grade solution for the given difficulty.
+        - Be specific and concise. Provide concrete examples (e.g., variable names, functions) in feedback.
+        - DO NOT include any text outside the JSON. No markdown, no explanations before/after.
+        - If information is missing, state the assumption inside the JSON "summary".
+
+        Exercise description:
+        %s
+
+        Initial code:
+        %s
+
+        Student solution:
+        %s
+        """,
+                difficulty.name(),
+                exercise.getDescription(),
+                exercise.getInitalCode(),
+                exercise.getStudentSolution()
+        );
     }
+
 
     public CodingQuestionGradingDTO generateCodingQuestionGrading(CodingExercise exercise)
             throws IOException {
@@ -63,12 +86,23 @@ public class CodingQuestionGradingPromptCreator {
             {
               "type": "object",
               "properties": {
-                "codingQuestionGradingResponse": { "type": "string" }
+                "codingQuestionGradingResponse": { "type": "string", "minLength": 1 },
+                "requirementsFulfillment": {"type": "integer", "minimum": 0, "maximum": 40},
+                "correctness": {"type": "integer", "minimum": 0, "maximum": 30},
+                "codeQuality": {"type": "integer", "minimum": 0, "maximum": 15},
+                "efficiency": {"type": "integer", "minimum": 0, "maximum": 10},
+                "edgeCases": {"type": "integer", "minimum": 0, "maximum": 5}
               },
-              "required": ["codingQuestionGradingResponse"],
+              "required": ["codingQuestionGradingResponse",
+               "requirementsFulfillment",
+               "correctness",
+               "codeQuality",
+               "efficiency",
+               "edgeCases"],
               "additionalProperties": false
             }
             """;
+
 
         List<Message> instructions = List.of(
                 new SystemMessage(getSystemInstructions(Difficulty.MEDIUM, exercise))
@@ -81,9 +115,23 @@ public class CodingQuestionGradingPromptCreator {
                         .build()
         );
 
-        return chatClient
+        CodingQuestionGradingDTO answer = chatClient
                 .prompt(prompt)
                 .call()
                 .entity(CodingQuestionGradingDTO.class);
+
+        if(answer == null){
+            throw new IllegalStateException("LLM returned no parsable answer");
+        }
+
+        int fullScore = answer.getRequirementsFulfillment() +
+                answer.getCorrectness() +
+                answer.getCodeQuality() +
+                answer.getEfficiency() +
+                answer.getEdgeCases();
+
+        answer.setFullScore(fullScore);
+
+        return answer;
     }
 }
